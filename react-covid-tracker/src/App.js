@@ -3,17 +3,14 @@ import './App.css';
 import FormControl from '@material-ui/core/FormControl';
 import { MenuItem, Select } from '@material-ui/core';
 import {useState, useEffect} from 'react';
+import InfoBox from "./InfoBox";
 
 function App() {
 
 
-  const [countries, setCountries] = useState([
-
-    
-
-
-
-  ]);
+  const [countries, setCountries] = useState([]);
+  //setting up default country for select icon
+  const [country, setCountry] = useState('worldwide');
 
 
 
@@ -36,8 +33,10 @@ function App() {
             
             name: country.country,
             value: country.countryInfo.iso2,
-              
-      }));
+
+          }
+          
+          ));
           //put the countries we mapped through
           setCountries(countries);
 
@@ -46,10 +45,26 @@ function App() {
   
 
     };
+    
+    //handling async call here by calling function again
     getCountriesData();
 
   
   }, [countries]);
+
+
+
+  //OnCountryChange Function 
+  //takes in an event e
+  const onCountryChange = (e) =>{
+
+      //this stores the country we select
+      const countryCode = e.target.value;
+      
+      //Then we set the default value here for the select button
+      setCountry(countryCode);
+      
+  };
 
 
 
@@ -58,38 +73,40 @@ function App() {
   return (
     <div className="app">
 
+      {/* Header */}
+
+      {/* Title + Select input dropdown field */}
+
       <div className="app__header">
         <h1>Covid 19 Tracker</h1>
 
           <FormControl className="app_dropdown">
-              <Select variant="outlined" value="abc">
+                {/* Here value is set to worldwide as default to show in the select box */}
+              <Select variant="outlined" value={country} onChange={onCountryChange}>
                 {/* DropDown menu from material UI */}
                 {/* Loop through all the countries and drop them down */}
                 {/* <MenuItem value="worldwide">worldwide</MenuItem> */}
                 {/* JSX */}
+                <MenuItem value="worldwide">Worldwide</MenuItem>
                 {
                   countries.map(country=>(
+
                     <MenuItem value={country.value}>{country.name}</MenuItem>
                   ))
                 }
               </Select>
           </FormControl>
-
-
       </div>
 
 
-      
-
-
-
-      {/* Header */}
-
-      {/* Title + Select input dropdown field */}
-
-      {/* InfoBox */}
-      {/* InfoBox */}
-      {/* InfoBox */}
+      <div className="app__stats">
+        {/* InfoBox  title = CoronaVirus cases*/}
+          <InfoBox title="Coronavirus cases" cases={1236} total={2000}/>
+        {/* InfoBox title = Coronavirus recoveries */}
+          <InfoBox title="Recovered" cases={1234} total={4000}/>
+        {/* InfoBox title= coroa deaths*/}
+          <InfoBox title="Deaths" cases={123} total={5000}/>
+      </div>
 
 
       {/* Table */}
