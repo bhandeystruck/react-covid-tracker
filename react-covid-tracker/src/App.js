@@ -1,9 +1,13 @@
 import React from 'react';
 import './App.css';
 import FormControl from '@material-ui/core/FormControl';
-import { MenuItem, Select } from '@material-ui/core';
+import { Card, CardContent, MenuItem, Select } from '@material-ui/core';
 import {useState, useEffect} from 'react';
 import InfoBox from "./InfoBox";
+import Map from './Map';
+import Table from './Table';
+import { sortData } from './util';
+import LineGraph from './LineGraph';
 
 function App() {
 
@@ -12,8 +16,24 @@ function App() {
   //setting up default country for select icon
   const [country, setCountry] = useState('worldwide');
 
+  //country info state
+  const [countryInfo, setCountryInfo] = useState({});
+
+  //table data
+  const [tableData, setTableData] = useState([]);
 
 
+
+    useEffect(() => {
+      fetch("https://disease.sh/v3/covid-19/countries/all")
+      .then(response=> response.json())
+      .then(data=>{
+        setCountryInfo(data);
+      });
+    }, [])
+
+
+ 
   //USE EFFECT = Runs code based on a given condition [] is the condition
   //[] is left blank it will only run once when the app loads
   //in our case we need the effect to run when the countries change
@@ -37,9 +57,12 @@ function App() {
           }
           
           ));
+          //sorting the data here
+          const sortedData = sortData(data);
           //put the countries we mapped through
           setCountries(countries);
-
+          //getting the data for the table from this function
+          setTableData(sortedData);
       });
 
   
@@ -56,13 +79,39 @@ function App() {
 
   //OnCountryChange Function 
   //takes in an event e
-  const onCountryChange = (e) =>{
+  const onCountryChange = async (e) =>{
 
       //this stores the country we select
       const countryCode = e.target.value;
       
       //Then we set the default value here for the select button
       setCountry(countryCode);
+
+      //as here is where the country selection is handled
+      //I need to implement the getting the data part here
+      //https://disease.sh/v3/covid-19/all
+      //https://disease.sh/v3/covid-19/countries/{COUNTRY_CODE}
+      //need to implement : if country code is worldwide do that
+      //otherwise do the country code
+
+      //so if country code is worldwide we made this the url
+      const url = countryCode ==='worldwide' ? 'https://disease.sh/v3/covid-19/all' :
+      `https://disease.sh/v3/covid-19/countries/${countryCode}`;
+
+      //go to the url
+      await fetch(url)
+        //once we  get the information 
+        //turn it into json object
+        .then(response => response.json())
+        //then we do stuff with the data
+        .then(data=> {
+          //update the input 
+          setCountry(countryCode);
+          //store the response of the country info into a variable
+          
+          setCountryInfo(data);
+
+      });
       
   };
 
@@ -73,56 +122,60 @@ function App() {
   return (
     <div className="app">
 
-      {/* Header */}
+      {/* Application Left Side */}
+      <div className="app__left">
+          {/* Header */}
 
-      {/* Title + Select input dropdown field */}
+        {/* Title + Select input dropdown field */}
 
-      <div className="app__header">
-        <h1>Covid 19 Tracker</h1>
+        <div className="app__header">
+          <h1>Covid 19 Tracker</h1>
 
-          <FormControl className="app_dropdown">
-                {/* Here value is set to worldwide as default to show in the select box */}
-              <Select variant="outlined" value={country} onChange={onCountryChange}>
-                {/* DropDown menu from material UI */}
-                {/* Loop through all the countries and drop them down */}
-                {/* <MenuItem value="worldwide">worldwide</MenuItem> */}
-                {/* JSX */}
-                <MenuItem value="worldwide">Worldwide</MenuItem>
-                {
-                  countries.map(country=>(
+            <FormControl className="app_dropdown">
+                  {/* Here value is set to worldwide as default to show in the select box */}
+                <Select variant="outlined" value={country} onChange={onCountryChange}>
+                  {/* DropDown menu from material UI */}
+                  {/* Loop through all the countries and drop them down */}
+                  {/* <MenuItem value="worldwide">worldwide</MenuItem> */}
+                  {/* JSX */}
+                  <MenuItem value="worldwide">Worldwide</MenuItem>
+                  {
+                    countries.map(country=>(
 
-                    <MenuItem value={country.value}>{country.name}</MenuItem>
-                  ))
-                }
-              </Select>
-          </FormControl>
+                      <MenuItem value={country.value}>{country.name}</MenuItem>
+                    ))
+                  }
+                </Select>
+            </FormControl>
+        </div>
+
+
+          {/*  */}
+        <div className="app__stats">
+          {/* InfoBox  title = CoronaVirus cases*/}
+            <InfoBox title="Coronavirus cases" cases={countryInfo.todayCases} total={countryInfo.cases}/>
+          {/* InfoBox title = Coronavirus recoveries */}
+            <InfoBox title="Recovered" cases={countryInfo.todayRecovered} total={countryInfo.recovered}/>
+          {/* InfoBox title= corona deaths*/}
+            <InfoBox title="Deaths" cases={countryInfo.todayDeaths} total={countryInfo.deaths}/>
+        </div>
+
+
+        {/* Map */}
+        <Map/>
       </div>
 
-
-      <div className="app__stats">
-        {/* InfoBox  title = CoronaVirus cases*/}
-          <InfoBox title="Coronavirus cases" cases={1236} total={2000}/>
-        {/* InfoBox title = Coronavirus recoveries */}
-          <InfoBox title="Recovered" cases={1234} total={4000}/>
-        {/* InfoBox title= coroa deaths*/}
-          <InfoBox title="Deaths" cases={123} total={5000}/>
-      </div>
-
-
-      {/* Table */}
-      {/* Graph */}
-      {/* Map */}
-
-
-
-
-
-
-
-
-
-
-
+      {/* Application Left Side */}
+      <Card className="app__right">
+        <CardContent>
+          {/* Table */}
+          <h1>Live Cases By Country</h1>
+          <Table countries={tableData}/>
+          {/* Graph */} 
+          <h3>Worldwide new cases</h3>
+          <LineGraph/>
+        </CardContent>
+      </Card>
 
     </div>
   );
