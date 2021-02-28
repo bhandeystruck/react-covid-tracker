@@ -23,6 +23,9 @@ function App() {
   //table data
   const [tableData, setTableData] = useState([]);
 
+  const [mapCenter,setMapCenter] = useState({ lat: 34.80746, lng: -40.4796 });
+
+  const [mapZoom, setMapZoom] = useState(3);
 
 
     useEffect(() => {
@@ -111,6 +114,8 @@ function App() {
           //store the response of the country info into a variable
           
           setCountryInfo(data);
+          setMapCenter([data.countryInfo.lat, data.countryInfo.long]);
+          setMapZoom(4);
 
       });
       
@@ -163,7 +168,11 @@ function App() {
 
 
         {/* Map */}
-        <Map/>
+        <Map
+          center={mapCenter}
+          zoom={mapZoom}
+
+        />
       </div>
 
       {/* Application Left Side */}
